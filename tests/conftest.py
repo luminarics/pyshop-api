@@ -9,10 +9,6 @@ from sqlmodel import SQLModel
 from app.database import get_session
 from app.main import app as fastapi_app
 
-# Import your models!
-import app.models.product
-import app.routers.products
-
 ASYNC_SQLITE_URL = "sqlite+aiosqlite:///:memory:"
 
 # StaticPool is critical!
@@ -28,14 +24,11 @@ AsyncTestingSessionLocal = sessionmaker(
     expire_on_commit=False,
 )
 
-# -- THE FIX: Use pytest_asyncio.fixture for async fixtures!
 @pytest_asyncio.fixture(scope="session", autouse=True)
 async def setup_db():
-    # Create all tables (runs ONCE per test session)
     async with engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.create_all)
     yield
-    # Optional: drop tables after tests
     async with engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.drop_all)
 
