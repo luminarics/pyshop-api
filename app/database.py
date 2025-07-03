@@ -25,7 +25,7 @@ async def init_db(engine: Optional[AsyncEngine] = None) -> None:
         await conn.run_sync(SQLModel.metadata.create_all)
 
 
-async def get_db():     # or get_session()
+async def get_db(): 
     db = async_session()
     try:
         yield db
