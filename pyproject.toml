@@ -6,9 +6,6 @@ authors = ["Denis Połyncew"]
 license = "MIT"
 readme = "README.md"
 
-[tool.poetry.settings]
-package-mode = false
-
 [tool.poetry.dependencies]
 python = "^3.10"
 fastapi = "^0.115.14"
