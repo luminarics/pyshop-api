@@ -2,8 +2,9 @@ from http.client import HTTPException
 from typing import List
 
 from fastapi import APIRouter, Depends, status
-from sqlmodel import  select
+from sqlmodel import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import APIRouter, Depends, Query
 
 from app.models.product import Product
 from app.database import get_session
@@ -47,3 +48,21 @@ async def delete_product(product_id: int, session: AsyncSession = Depends(get_se
     await session.delete(product)
     await session.commit()
     return
+
+@router.get("/list", response_model=List[Product])
+async def read_products(
+    *,
+    session: AsyncSession = Depends(get_session),
+    limit: int = Query(10, ge=1),
+    offset: int = Query(0, ge=0),
+):
+    stmt = (
+        select(Product)
+        .order_by(Product.id)   
+        .offset(offset)         
+        .limit(limit)           
+    )
+
+    result = await session.execute(stmt)     
+    products = result.scalars().all()         
+    return products

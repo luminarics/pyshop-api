@@ -1,13 +1,10 @@
 [tool.poetry]
-name = "fastapi-demo"
+name = "pyshop-api"
 version = "0.1.0"
-description = "fastapi_demo"
+description = "pyshop-api"
 authors = ["Demis Połyncew"]
 license = "MIT"
 readme = "README.md"
-packages = [
-    { include = "app" }  # or "fastapi_demo" if you rename the folder
-]
 
 [tool.poetry.dependencies]
 python = "^3.10"

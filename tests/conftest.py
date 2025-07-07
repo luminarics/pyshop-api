@@ -24,11 +24,14 @@ AsyncTestingSessionLocal = sessionmaker(
     expire_on_commit=False,
 )
 
-@pytest_asyncio.fixture(scope="session", autouse=True)
+@pytest_asyncio.fixture(autouse=True)
 async def setup_db():
+    # before each test: drop & re-create all tables
     async with engine.begin() as conn:
-        await conn.run_sync(SQLModel.metadata.create_all)
+       await conn.run_sync(SQLModel.metadata.drop_all)
+       await conn.run_sync(SQLModel.metadata.create_all)
     yield
+    # after each test: clean up
     async with engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.drop_all)
 
