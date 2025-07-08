@@ -26,10 +26,10 @@ jobs:
       run: poetry install --no-root
 
     - name: Ruff & Black & mypy
-            run: |
-              poetry run ruff check .
-              poetry run black --check .
-              poetry run mypy app
+      run: |
+        poetry run ruff check .
+        poetry run black --check .
+        poetry run mypy app
 
     - name : Run tests
       run: poetry run pytest
