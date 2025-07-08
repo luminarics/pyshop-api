@@ -20,7 +20,22 @@ alembic = "^1.16.2"
 pytest = "^8.4.1"
 aiosqlite = "^0.21.0"
 httpx = "^0.27.0"
+ruff = "^0.12.2"
+black = "^25.1.0"
+mypy = "^1.16.1"
+pre-commit = "^4.2.0"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+line-length = 88
+
+[tool.black]
+line-length = 88
+target-version = ['py38', 'py39']
+
+[mypy]
+python_version = 3.10
+strict = true
