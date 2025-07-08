@@ -24,21 +24,24 @@ AsyncTestingSessionLocal = sessionmaker(
     expire_on_commit=False,
 )
 
+
 @pytest_asyncio.fixture(autouse=True)
 async def setup_db():
     # before each test: drop & re-create all tables
     async with engine.begin() as conn:
-       await conn.run_sync(SQLModel.metadata.drop_all)
-       await conn.run_sync(SQLModel.metadata.create_all)
+        await conn.run_sync(SQLModel.metadata.drop_all)
+        await conn.run_sync(SQLModel.metadata.create_all)
     yield
     # after each test: clean up
     async with engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.drop_all)
 
+
 @pytest_asyncio.fixture
 async def async_session():
     async with AsyncTestingSessionLocal() as session:
         yield session
+
 
 @pytest.fixture(autouse=True)
 def override_get_session():
@@ -49,6 +52,7 @@ def override_get_session():
     fastapi_app.dependency_overrides[get_session] = _get_test_session
     yield
     fastapi_app.dependency_overrides.clear()
+
 
 @pytest.fixture
 def client():
