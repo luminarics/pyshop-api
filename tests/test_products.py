@@ -1,18 +1,19 @@
 import pytest
 from sqlmodel import select
-from httpx import AsyncClient
+from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.main import app
 from app.models.product import Product
-from httpx import AsyncClient, ASGITransport
 
 
 @pytest.mark.asyncio
 async def test_create_product(async_session: AsyncSession):
     # Hit the API
     payload = {"name": "Test Product", "price": 10.99}
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as ac:
         response = await ac.post("/products/", json=payload)
 
     assert response.status_code == 201
@@ -21,7 +22,9 @@ async def test_create_product(async_session: AsyncSession):
     assert data["price"] == payload["price"]
 
     # Verify DB row
-    result = await async_session.execute(select(Product).where(Product.name == "Test Product"))
+    result = await async_session.execute(
+        select(Product).where(Product.name == "Test Product")
+    )
     assert len(result.scalars().all()) == 1
 
 
@@ -38,7 +41,9 @@ async def test_pagination(async_session: AsyncSession):
     await async_session.commit()
 
     # Query with limit/offset
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as ac:
         response = await ac.get("/products/list?limit=2&offset=1")
 
     assert response.status_code == 200
