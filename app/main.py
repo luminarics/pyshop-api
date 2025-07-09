@@ -20,6 +20,6 @@ app = FastAPI(lifespan=lifespan)
 app.include_router(products.router)
 
 
-@app.get("/healthz")
+@app.get("/healthz", include_in_schema=False)
 def healthz():
     return {"status": "ok"}
