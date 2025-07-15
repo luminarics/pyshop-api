@@ -1,7 +1,7 @@
 # app/main.py
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from app.routers import products
+from app.routers import products, profile
 from app.database import init_db
 from prometheus_fastapi_instrumentator import Instrumentator
 from loguru import logger
@@ -28,6 +28,8 @@ instrumentator.expose(app, endpoint="/metrics", include_in_schema=False)
 
 # Routers
 app.include_router(products.router)
+
+app.include_router(profile.router)
 
 
 @app.get("/healthz", include_in_schema=False)

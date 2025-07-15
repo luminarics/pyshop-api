@@ -16,6 +16,9 @@ psycopg2-binary = "^2.9.10"
 pytest-asyncio = "^1.0.0"
 prometheus-fastapi-instrumentator = "^7.1.0"
 loguru = "^0.7.3"
+fastapi-users = {extras = ["sqlalchemy"], version = "^14.0.1"}
+python-jose = "^3.5.0"
+passlib = {extras = ["bcrypt"], version = "^1.7.4"}
 
 [tool.poetry.group.dev.dependencies]
 alembic = "^1.16.2"
