@@ -33,7 +33,7 @@ def get_password_hash(password: str) -> str:
 async def authenticate_user(
     username: str, password: str, db: AsyncSession
 ) -> Optional[UserDB]:
-    stmt = select(User).where(User.username == username)
+    stmt = select(User).where(User.username == username)  # type: ignore[arg-type]
     try:
         result = await db.execute(stmt)
         user: User = result.scalar_one()
@@ -68,7 +68,7 @@ async def get_current_user(
         if not user_id:
             raise credentials_exception
         # Fetch the user by UUID
-        stmt = select(User).where(User.id == UUID(user_id))
+        stmt = select(User).where(User.id == UUID(user_id))  # type: ignore[arg-type]
         result = await db.execute(stmt)
         user = result.scalar_one_or_none()
         if not user or not user.is_active:

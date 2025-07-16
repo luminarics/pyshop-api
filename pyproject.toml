@@ -29,6 +29,8 @@ ruff = "^0.12.2"
 black = "^25.1.0"
 mypy = "^1.16.1"
 pre-commit = "^4.2.0"
+types-passlib = "^1.7.7.20250602"
+types-python-jose = "^3.5.0.20250531"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
