@@ -22,19 +22,17 @@ def get_jwt_strategy() -> JWTStrategy:
     return JWTStrategy(
         secret=SECRET_KEY,
         lifetime_seconds=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-        token_audience=["fastapi-users:auth"],  # Add this line
+        token_audience=["fastapi-users:auth"],
     )
 
 
-# Create the auth backend
 auth_backend = AuthenticationBackend(
     name="jwt",
     transport=bearer_transport,
     get_strategy=get_jwt_strategy,
 )
 
-# Initialize FastAPIUsers instance
-fastapi_users = FastAPIUsers[User, UUID](  # Changed from int to UUID
+fastapi_users = FastAPIUsers[User, UUID](
     get_user_manager,
     [auth_backend],
 )
@@ -52,7 +50,7 @@ router.include_router(
 
 router.include_router(
     fastapi_users.get_verify_router(UserRead),
-    prefix="/auth/jwt",  # Changed prefix to match auth router
+    prefix="/auth/jwt",
     tags=["auth"],
 )
 

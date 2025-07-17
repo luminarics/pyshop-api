@@ -1,6 +1,4 @@
-# app/database.py  –  cleaned-up, working async DB layer
 from typing import Optional
-import os
 from sqlmodel import SQLModel
 from sqlalchemy.ext.asyncio import (
     create_async_engine,
@@ -11,11 +9,8 @@ from sqlalchemy.ext.asyncio import (
 from fastapi import Depends
 from fastapi_users.db import SQLAlchemyUserDatabase
 from app.models.user import User
+from app.core.config import DATABASE_URL
 
-DATABASE_URL: str = os.getenv(
-    "DATABASE_URL",
-    "postgresql+asyncpg://app:app@localhost:5432/fastapi",  # sensible default
-)
 engine: AsyncEngine = create_async_engine(DATABASE_URL, echo=False, pool_pre_ping=True)
 
 async_session = async_sessionmaker(engine, expire_on_commit=False)

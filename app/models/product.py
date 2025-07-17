@@ -1,10 +1,33 @@
 from datetime import datetime
-from typing import Optional
-from sqlmodel import Field, SQLModel
+from sqlalchemy import String, Float
+from sqlalchemy.orm import Mapped, mapped_column
+from app.models.user import Base
+from pydantic import BaseModel, ConfigDict
 
 
-class Product(SQLModel, table=True):  # type: ignore[call-arg]
-    id: Optional[int] = Field(default=None, primary_key=True)
+class Product(Base):
+    __tablename__ = "product"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String, unique=True, index=True)
+    price: Mapped[float] = mapped_column(Float)
+    created_at: Mapped[datetime] = mapped_column(default=datetime.now)
+
+
+class ProductBase(BaseModel):
     name: str
     price: float
-    created_at: datetime = Field(default_factory=datetime.now)
+
+
+class ProductCreate(ProductBase):
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ProductUpdate(ProductBase):
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ProductRead(ProductBase):
+    id: int
+    created_at: datetime
+    model_config = ConfigDict(from_attributes=True)

@@ -1,12 +1,11 @@
 from typing import Optional
 from uuid import UUID
-
 from fastapi import Depends, Request
 from fastapi_users import BaseUserManager, UUIDIDMixin
 
 from app.models.user import User
-from app.database import get_user_db
 from app.core.config import SECRET_KEY
+from app.database import get_user_db
 
 
 class UserManager(UUIDIDMixin, BaseUserManager[User, UUID]):

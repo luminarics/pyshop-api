@@ -5,21 +5,22 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.main import app
 from app.models.product import Product
+from app.models.product import ProductCreate
 
 
 @pytest.mark.asyncio
 async def test_create_product(async_session: AsyncSession):
     # Hit the API
-    payload = {"name": "Test Product", "price": 10.99}
+    payload = ProductCreate(name="Test Product", price=10.99)
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
     ) as ac:
-        response = await ac.post("/products/", json=payload)
+        response = await ac.post("/products/", json=payload.model_dump())
 
     assert response.status_code == 201
     data = response.json()
-    assert data["name"] == payload["name"]
-    assert data["price"] == payload["price"]
+    assert data["name"] == payload.name
+    assert data["price"] == payload.price
 
     # Verify DB row
     result = await async_session.execute(
@@ -31,28 +32,49 @@ async def test_create_product(async_session: AsyncSession):
 @pytest.mark.asyncio
 async def test_pagination(async_session: AsyncSession):
     # Seed 3 rows
-    async_session.add_all(
-        [
-            Product(name="p0", price=0),
-            Product(name="p1", price=1),
-            Product(name="p2", price=2),
-        ]
-    )
+    products = [Product(name=f"p{i}", price=float(i)) for i in range(3)]
+    async_session.add_all(products)
     await async_session.commit()
 
-    # Query with limit/offset
+    # Test first page
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
     ) as ac:
-        response = await ac.get("/products/list?limit=2&offset=1")
+        response = await ac.get("/products/?offset=0&limit=2")
 
     assert response.status_code == 200
-    body = response.json()
-    print(body)
-    assert len(body) == 2
-    assert body[0]["name"] == "p1"
-    assert body[1]["name"] == "p2"
+    data = response.json()
+    assert len(data) == 2
+    assert data[0]["name"] == "p0"
+    assert data[1]["name"] == "p1"
 
-    # Double-check total rows
-    result = await async_session.execute(select(Product))
-    assert len(result.scalars().all()) == 3
+    # Test second page
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as ac:
+        response = await ac.get("/products/?offset=2&limit=2")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data) == 1
+    assert data[0]["name"] == "p2"
+
+
+@pytest.mark.asyncio
+async def test_update_product(async_session: AsyncSession):
+    # Create a product first
+    product = Product(name="Old Name", price=9.99)
+    async_session.add(product)
+    await async_session.commit()
+
+    # Update it
+    update_payload = {"name": "New Name", "price": 19.99}
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as ac:
+        response = await ac.put(f"/products/{product.id}", json=update_payload)
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["name"] == update_payload["name"]
+    assert data["price"] == update_payload["price"]

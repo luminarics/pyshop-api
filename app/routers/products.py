@@ -1,48 +1,61 @@
 from fastapi import HTTPException
 from typing import List
-
 from fastapi import APIRouter, Depends, status, Query
-from sqlmodel import select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.product import Product
 from app.database import get_session
+from app.models.product import ProductCreate, ProductRead, ProductUpdate
 
-router = APIRouter(prefix="/products", tags=["products"])
+router = APIRouter()
 
 
-@router.get("/", response_model=List[Product])
-async def list_products(session: AsyncSession = Depends(get_session)):
-    result = await session.execute(select(Product))
+@router.get("/products/", response_model=List[ProductRead])
+async def list_products(
+    session: AsyncSession = Depends(get_session),
+    limit: int = Query(10, ge=1),
+    offset: int = Query(0, ge=0),
+):
+    result = await session.execute(
+        select(Product).order_by(Product.id).offset(offset).limit(limit)
+    )
     return result.scalars().all()
 
 
-@router.post("/", response_model=Product, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/products/", response_model=ProductRead, status_code=status.HTTP_201_CREATED
+)
 async def create_product(
-    product: Product, session: AsyncSession = Depends(get_session)
+    product_data: ProductCreate, session: AsyncSession = Depends(get_session)
 ):
+    product = Product(**product_data.model_dump())
     session.add(product)
     await session.commit()
     await session.refresh(product)
     return product
 
 
-@router.put("/{product_id}", response_model=Product)
+@router.put("/products/{product_id}", response_model=ProductRead)
 async def update_product(
-    product_id: int, payload: Product, session: AsyncSession = Depends(get_session)
+    product_id: int,
+    payload: ProductUpdate,
+    session: AsyncSession = Depends(get_session),
 ):
     result = await session.execute(select(Product).where(Product.id == product_id))
     product = result.scalars().first()
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
-    product.name = payload.name
-    product.price = payload.price
+
+    for key, value in payload.model_dump().items():
+        setattr(product, key, value)
+
     await session.commit()
     await session.refresh(product)
     return product
 
 
-@router.delete("/{product_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/products/{product_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_product(product_id: int, session: AsyncSession = Depends(get_session)):
     result = await session.execute(select(Product).where(Product.id == product_id))
     product = result.scalars().first()
@@ -51,17 +64,3 @@ async def delete_product(product_id: int, session: AsyncSession = Depends(get_se
     await session.delete(product)
     await session.commit()
     return
-
-
-@router.get("/list", response_model=List[Product])
-async def read_products(
-    *,
-    session: AsyncSession = Depends(get_session),
-    limit: int = Query(10, ge=1),
-    offset: int = Query(0, ge=0),
-):
-    stmt = select(Product).order_by("id").offset(offset).limit(limit)
-
-    result = await session.execute(stmt)
-    products = result.scalars().all()
-    return products

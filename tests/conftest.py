@@ -1,17 +1,16 @@
 import pytest
 import pytest_asyncio
-from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
-from sqlmodel import SQLModel
 
 from app.database import get_session
 from app.main import app as fastapi_app
+from app.models.user import Base
 
+# Configure test database
 ASYNC_SQLITE_URL = "sqlite+aiosqlite:///:memory:"
 
-# StaticPool is critical!
 engine = create_async_engine(
     ASYNC_SQLITE_URL,
     connect_args={"check_same_thread": False},
@@ -27,14 +26,13 @@ AsyncTestingSessionLocal = sessionmaker(
 
 @pytest_asyncio.fixture(autouse=True)
 async def setup_db():
-    # before each test: drop & re-create all tables
+    # Create all tables using Base.metadata
     async with engine.begin() as conn:
-        await conn.run_sync(SQLModel.metadata.drop_all)
-        await conn.run_sync(SQLModel.metadata.create_all)
+        await conn.run_sync(Base.metadata.drop_all)
+        await conn.run_sync(Base.metadata.create_all)
     yield
-    # after each test: clean up
     async with engine.begin() as conn:
-        await conn.run_sync(SQLModel.metadata.drop_all)
+        await conn.run_sync(Base.metadata.drop_all)
 
 
 @pytest_asyncio.fixture
@@ -52,8 +50,3 @@ def override_get_session():
     fastapi_app.dependency_overrides[get_session] = _get_test_session
     yield
     fastapi_app.dependency_overrides.clear()
-
-
-@pytest.fixture
-def client():
-    return TestClient(fastapi_app)

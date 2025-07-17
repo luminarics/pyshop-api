@@ -1,22 +1,19 @@
-from typing import Optional
+from pydantic import ConfigDict
 from uuid import UUID, uuid4
 from fastapi_users import schemas
 from fastapi_users.db import SQLAlchemyBaseUserTable
 from sqlalchemy import String, Boolean
 from sqlalchemy.dialects.postgresql import UUID as PostgresUUID
 from sqlalchemy.orm import DeclarativeBase, mapped_column, Mapped
-from sqlalchemy.ext.declarative import declared_attr
 
 
 class Base(DeclarativeBase):
-    """Base class for all models"""
+    """Base for SQLAlchemy models"""
 
-    @declared_attr
-    def __tablename__(cls) -> str:
-        return cls.__name__.lower()
+    pass
 
 
-class User(Base, SQLAlchemyBaseUserTable[UUID]):
+class User(SQLAlchemyBaseUserTable[UUID]):
     """User model with UUID primary key"""
 
     id: Mapped[UUID] = mapped_column(
@@ -29,23 +26,17 @@ class User(Base, SQLAlchemyBaseUserTable[UUID]):
     is_superuser: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
-    def get_id(self) -> UUID:
-        return self.id
-
-    class Config:
-        arbitrary_types_allowed = True
-
 
 class UserRead(schemas.BaseUser[UUID]):
     username: str
-
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class UserCreate(schemas.BaseUserCreate):
     username: str
+    model_config = ConfigDict(from_attributes=True)
 
 
 class UserUpdate(schemas.BaseUserUpdate):
-    username: Optional[str] = None
+    username: str | None = None
+    model_config = ConfigDict(from_attributes=True)
