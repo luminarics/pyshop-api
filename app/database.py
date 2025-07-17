@@ -8,6 +8,9 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
     AsyncEngine,
 )
+from fastapi import Depends
+from fastapi_users.db import SQLAlchemyUserDatabase
+from app.models.user import User
 
 DATABASE_URL: str = os.getenv(
     "DATABASE_URL",
@@ -31,3 +34,11 @@ async def init_db(db_engine: Optional[AsyncEngine] = None) -> None:
     _engine = db_engine or engine
     async with _engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.create_all)
+
+
+async def get_user_db(session: AsyncSession = Depends(get_session)):
+    """
+    FastAPI-Users database adapter dependency.
+    Used by UserManager to perform database operations.
+    """
+    yield SQLAlchemyUserDatabase(session, User)

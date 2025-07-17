@@ -1,53 +1,73 @@
-from app.auth.authentification import (
-    authenticate_user,
-    create_access_token,
-    get_current_user,
-    get_password_hash,
+from fastapi import APIRouter, Depends
+from fastapi_users import FastAPIUsers
+from fastapi_users.authentication import (
+    AuthenticationBackend,
+    BearerTransport,
+    JWTStrategy,
 )
-from fastapi import FastAPI, APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy.ext.asyncio import AsyncSession
-from app.database import get_session
-from app.models.user import User, UserCreate, UserRead
+from sqlmodel import UUID
 
-app = FastAPI()
+from app.auth.user_manager import get_user_manager
+from app.models.user import User, UserRead, UserCreate, UserUpdate
+from app.core.config import SECRET_KEY, ACCESS_TOKEN_EXPIRE_MINUTES
 
-router = APIRouter(prefix="/profile", tags=["profile"])
+router = APIRouter()
+
+# Configure bearer transport
+bearer_transport = BearerTransport(tokenUrl="auth/jwt/login")
 
 
-@app.post("/register", response_model=UserRead, status_code=status.HTTP_201_CREATED)
-async def register(
-    user_in: UserCreate,
-    db: AsyncSession = Depends(get_session),
-):
-    # 1. hash the password
-    hashed_pw = get_password_hash(user_in.password)
-    user = User(
-        username=user_in.username,
-        email=user_in.email,
-        hashed_password=hashed_pw,
+# Configure JWT Strategy
+def get_jwt_strategy() -> JWTStrategy:
+    return JWTStrategy(
+        secret=SECRET_KEY,
+        lifetime_seconds=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        token_audience=["fastapi-users:auth"],  # Add this line
     )
-    db.add(user)
-    await db.commit()
-    await db.refresh(user)
-    return UserRead.from_orm(user)
 
 
-@app.post("/token")
-async def login_for_access_token(
-    form_data: OAuth2PasswordRequestForm = Depends(),
-    db: AsyncSession = Depends(get_session),
-):
-    user = await authenticate_user(form_data.username, form_data.password, db)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Incorrect username or password",
-        )
-    access_token = create_access_token(data={"sub": str(user.id)})
-    return {"access_token": access_token, "token_type": "bearer"}
+# Create the auth backend
+auth_backend = AuthenticationBackend(
+    name="jwt",
+    transport=bearer_transport,
+    get_strategy=get_jwt_strategy,
+)
+
+# Initialize FastAPIUsers instance
+fastapi_users = FastAPIUsers[User, UUID](  # Changed from int to UUID
+    get_user_manager,
+    [auth_backend],
+)
+
+# Include fastapi-users routers
+router.include_router(
+    fastapi_users.get_auth_router(auth_backend), prefix="/auth/jwt", tags=["auth"]
+)
+
+router.include_router(
+    fastapi_users.get_register_router(UserRead, UserCreate),
+    prefix="/auth",
+    tags=["auth"],
+)
+
+router.include_router(
+    fastapi_users.get_verify_router(UserRead),
+    prefix="/auth/jwt",  # Changed prefix to match auth router
+    tags=["auth"],
+)
+
+router.include_router(
+    fastapi_users.get_users_router(UserRead, UserUpdate),
+    prefix="/users",
+    tags=["users"],
+)
+
+# Export current_user dependencies
+current_user = fastapi_users.current_user()
+current_active_user = fastapi_users.current_user(active=True)
+current_superuser = fastapi_users.current_user(active=True, superuser=True)
 
 
-@app.get("/users/me", response_model=UserRead)
-async def read_users_me(current_user=Depends(get_current_user)):
-    return current_user
+@router.get("/me")
+async def get_me(user: User = Depends(current_active_user)):
+    return user

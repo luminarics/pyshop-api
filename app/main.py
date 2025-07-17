@@ -5,6 +5,7 @@ from app.routers import products, profile
 from app.database import init_db
 from prometheus_fastapi_instrumentator import Instrumentator
 from loguru import logger
+from app.routers.profile import router as profile_router
 
 logger.add("logs/api.log", rotation="1 week", serialize=True)
 
@@ -26,7 +27,11 @@ instrumentator.instrument(app)
 
 instrumentator.expose(app, endpoint="/metrics", include_in_schema=False)
 
+
 # Routers
+
+app.include_router(profile_router)
+
 app.include_router(products.router)
 
 app.include_router(profile.router)

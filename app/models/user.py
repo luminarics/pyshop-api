@@ -1,47 +1,31 @@
 from typing import Optional
 from uuid import UUID, uuid4
-
-from sqlmodel import SQLModel, Field
-from pydantic import BaseModel
-
-
-class UserBase(SQLModel):
-    username: str = Field(index=True, nullable=False, unique=True)
-    email: Optional[str] = Field(index=True, nullable=True)
-    is_active: bool = Field(default=True, nullable=False)
-    is_superuser: bool = Field(default=False, nullable=False)
+from fastapi_users import schemas
+from fastapi_users.db import SQLAlchemyBaseUserTable
+from sqlmodel import Field, SQLModel
+from pydantic import ConfigDict
 
 
-class User(UserBase):
-    """
-    The table that lives in Postgres.
-    """
+class User(SQLModel, SQLAlchemyBaseUserTable[UUID], table=True):  # type: ignore[call-arg]
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
+    username: str = Field(unique=True, index=True)
+    email: str = Field(unique=True, index=True)
     hashed_password: str = Field(nullable=False)
+    is_active: bool = Field(default=True, nullable=False)
+    is_superuser: bool = Field(default=False, nullable=False)
+    is_verified: bool = Field(default=False, nullable=False)
 
 
-class UserCreate(BaseModel):
-    """
-    What the client sends when registering.
-    """
-
+class UserRead(schemas.BaseUser[UUID]):
     username: str
-    password: str
-    email: Optional[str] = None
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
-class UserRead(UserBase):
-    """
-    What we return in our API.
-    """
-
-    id: UUID
+class UserCreate(schemas.BaseUserCreate):
+    username: str
 
 
-class UserDB(UserRead):
-    """
-    Internal schema: what we load from the database.
-    """
-
-    hashed_password: str
+class UserUpdate(schemas.BaseUserUpdate):
+    username: Optional[str] = None
