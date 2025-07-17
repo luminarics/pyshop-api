@@ -32,7 +32,7 @@ auth_backend = AuthenticationBackend(
     get_strategy=get_jwt_strategy,
 )
 
-fastapi_users = FastAPIUsers[User, UUID](
+fastapi_users = FastAPIUsers[User, UUID](  # type: ignore[type-var]
     get_user_manager,
     [auth_backend],
 )

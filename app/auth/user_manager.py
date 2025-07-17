@@ -8,7 +8,7 @@ from app.core.config import SECRET_KEY
 from app.database import get_user_db
 
 
-class UserManager(UUIDIDMixin, BaseUserManager[User, UUID]):
+class UserManager(UUIDIDMixin, BaseUserManager[User, UUID]):  # type: ignore[type-var]
     reset_password_token_secret = SECRET_KEY
     verification_token_secret = SECRET_KEY
 

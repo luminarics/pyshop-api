@@ -13,7 +13,7 @@ class Base(DeclarativeBase):
     pass
 
 
-class User(SQLAlchemyBaseUserTable[UUID]):
+class User(SQLAlchemyBaseUserTable[UUID], Base):
     """User model with UUID primary key"""
 
     id: Mapped[UUID] = mapped_column(
