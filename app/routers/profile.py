@@ -14,7 +14,7 @@ from app.core.config import SECRET_KEY, ACCESS_TOKEN_EXPIRE_MINUTES
 router = APIRouter()
 
 # Configure bearer transport
-bearer_transport = BearerTransport(tokenUrl="auth/jwt/login")
+bearer_transport = BearerTransport(tokenUrl="/auth/jwt/login")
 
 
 # Configure JWT Strategy

@@ -1,13 +1,13 @@
 import os
-from sqlalchemy.engine.url import URL
+from sqlalchemy.engine.url import URL, make_url
 
-SECRET_KEY = os.getenv(
-    "SECRET_KEY", "your-secret-key-for-jwt"  # Change this in production!
-)
+try:
+    SECRET_KEY: str = os.environ["SECRET_KEY"]
+except KeyError as exc:
+    raise RuntimeError("SECRET_KEY env var missing") from exc
 
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
 
-# Database configuration
-DATABASE_URL: str | URL = os.getenv(
-    "DATABASE_URL", "postgresql+asyncpg://app:app@localhost:5432/fastapi"
+DATABASE_URL: str | URL = make_url(
+    os.getenv("DATABASE_URL", "postgresql+asyncpg://app:app@db:5432/fastapi")
 )

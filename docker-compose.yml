@@ -1,4 +1,4 @@
-# docker-compose.yml
+# docker-compose.yml (top level)
 services:
   db:
     image: postgres:16-alpine
@@ -19,20 +19,19 @@ services:
         condition: service_healthy
     environment:
       DATABASE_URL: postgresql+asyncpg://app:app@db:5432/fastapi
-    ports:
-      - "8000:8000"
-    restart: on-failure
+      SECRET_KEY: ${SECRET_KEY:-dev123}
+    ports: ["8000:8000"]
     volumes:
       - ./logs:/app/logs
+    restart: on-failure
 
   prometheus:
     image: prom/prometheus
     volumes:
-      # host dir → container dir
-      - ./monitoring:/etc/prometheus
-    ports:
-      - "9090:9090"
+      - ./monitoring:/etc/prometheus               # folder-to-folder mount ✅
+    ports: ["9090:9090"]
+
   grafana:
     image: grafana/grafana
-    ports: ["3000:3000"]
     depends_on: [prometheus]
+    ports: ["3000:3000"]

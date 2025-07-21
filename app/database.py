@@ -22,10 +22,6 @@ async def get_session() -> AsyncSession:  # type: ignore # FastAPI dependency
 
 
 async def init_db(db_engine: Optional[AsyncEngine] = None) -> None:
-    """
-    Create all tables. Pass a custom AsyncEngine in tests;
-    use the module-level engine in production.
-    """
     _engine = db_engine or engine
     async with _engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.create_all)

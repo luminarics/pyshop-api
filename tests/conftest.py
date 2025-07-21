@@ -1,12 +1,16 @@
+import os
 import pytest
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
+os.environ.setdefault("SECRET_KEY", "test_secret_for_pytest")
+
 from app.database import get_session
 from app.main import app as fastapi_app
 from app.models.user import Base
+
 
 # Configure test database
 ASYNC_SQLITE_URL = "sqlite+aiosqlite:///:memory:"
