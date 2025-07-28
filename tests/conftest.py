@@ -1,4 +1,5 @@
 import os
+from httpx import AsyncClient
 import pytest
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
@@ -54,3 +55,9 @@ def override_get_session():
     fastapi_app.dependency_overrides[get_session] = _get_test_session
     yield
     fastapi_app.dependency_overrides.clear()
+
+
+@pytest_asyncio.fixture
+async def client():
+    async with AsyncClient(app=fastapi_app, base_url="http://test") as ac:
+        yield ac

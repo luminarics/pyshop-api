@@ -1,10 +1,7 @@
 import os
 from sqlalchemy.engine.url import URL, make_url
 
-try:
-    SECRET_KEY: str = os.environ["SECRET_KEY"]
-except KeyError as exc:
-    raise RuntimeError("SECRET_KEY env var missing") from exc
+SECRET_KEY: str = os.getenv("SECRET_KEY", "test_secret")
 
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
 

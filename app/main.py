@@ -9,6 +9,10 @@ from loguru import logger
 logger.add("logs/api.log", rotation="1 week", serialize=True)
 
 
+def __init__():
+    logger.info("Starting FastAPI application")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_db()

@@ -15,7 +15,10 @@ async def test_create_product(async_session: AsyncSession):
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
     ) as ac:
-        response = await ac.post("/products/", json=payload.model_dump())
+        headers = await get_auth_headers(ac)
+        response = await ac.post(
+            "/products/", json=payload.model_dump(), headers=headers
+        )
 
     assert response.status_code == 201
     data = response.json()
@@ -40,7 +43,8 @@ async def test_pagination(async_session: AsyncSession):
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
     ) as ac:
-        response = await ac.get("/products/?offset=0&limit=2")
+        headers = await get_auth_headers(ac)
+        response = await ac.get("/products/?offset=0&limit=2", headers=headers)
 
     assert response.status_code == 200
     data = response.json()
@@ -52,7 +56,8 @@ async def test_pagination(async_session: AsyncSession):
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
     ) as ac:
-        response = await ac.get("/products/?offset=2&limit=2")
+        headers = await get_auth_headers(ac)
+        response = await ac.get("/products/?offset=2&limit=2", headers=headers)
 
     assert response.status_code == 200
     data = response.json()
@@ -66,15 +71,55 @@ async def test_update_product(async_session: AsyncSession):
     product = Product(name="Old Name", price=9.99)
     async_session.add(product)
     await async_session.commit()
-
     # Update it
     update_payload = {"name": "New Name", "price": 19.99}
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
     ) as ac:
-        response = await ac.put(f"/products/{product.id}", json=update_payload)
+        headers = await get_auth_headers(ac)
+        response = await ac.put(
+            f"/products/{product.id}", json=update_payload, headers=headers
+        )
 
     assert response.status_code == 200
     data = response.json()
     assert data["name"] == update_payload["name"]
     assert data["price"] == update_payload["price"]
+
+
+@pytest.mark.asyncio
+async def test_create_and_list_product(client):
+    headers = await get_auth_headers(client)
+    # create
+    resp = await client.post(
+        "/products/", json={"name": "Test", "price": 42}, headers=headers
+    )
+    assert resp.status_code == 201
+
+    # list
+    items = (await client.get("/products/", headers=headers)).json()
+    assert any(p["name"] == "Test" for p in items)
+
+
+@pytest.mark.asyncio
+async def test_create_requires_auth(client):
+    resp = await client.post("/products/", json={"name": "X", "price": 1})
+    assert resp.status_code == 401
+
+
+async def get_auth_headers(client: AsyncClient):
+    # signup
+    await client.post(
+        "/auth/register",
+        json={"email": "test@example.pl", "password": "hunter2", "username": "tester"},
+    )
+    login = await client.post(
+        "/auth/jwt/login",
+        data={"username": "test@example.pl", "password": "hunter2"},  # dict, not str
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
+    assert login.status_code == 200
+    token = login.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    return headers
