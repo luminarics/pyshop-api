@@ -37,11 +37,16 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
 line-length = 88
-extend-exclude = ["tests/**","alembic/versions/*.py"]
+extend-exclude = ["tests/**","alembic/**"]
 
 [tool.black]
 line-length = 88
 target-version = ['py38', 'py39']
+extend-exclude = '''
+/(
+  alembic/versions/.*
+)$
+'''
 
 [mypy]
 python_version = 3.10
