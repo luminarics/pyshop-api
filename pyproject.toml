@@ -37,7 +37,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
 line-length = 88
-extend-exclude = ["tests/**"]
+extend-exclude = ["tests/**","alembic/versions/*.py"]
 
 [tool.black]
 line-length = 88
