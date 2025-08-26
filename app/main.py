@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from app.routers import products, profile
 from app.database import init_db
+from app.core.config import GIT_SHA
 from prometheus_fastapi_instrumentator import Instrumentator
 from loguru import logger
 
@@ -40,3 +41,8 @@ app.include_router(profile.router)
 @app.get("/healthz", include_in_schema=False)
 def healthz():
     return {"status": "ok"}
+
+
+@app.get("/version", include_in_schema=False)
+def version():
+    return GIT_SHA

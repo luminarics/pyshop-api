@@ -1,7 +1,6 @@
 # pyshop‑api
 
-![CI](https://github.com/luminarics/pyshop-api/actions/workflows/ci.yml/badge.svg) ![coverage](coverage.svg)
-
+![CI](https://github.com/luminarics/pyshop-api/actions/workflows/python-tests.yml/badge.svg) 
 **An opinionated, fully‑async e‑commerce skeleton built with FastAPI 0.115 and SQLModel.** It targets small SaaS/shops that need JWT auth, metrics, and painless Docker deploys.
 
 > Made by ([@luminarics](https://github.com/luminarics)) while pivoting from .NET to Python.
@@ -34,7 +33,7 @@ docker compose up --build         # API → http://localhost:8000 ⚡️
 * **Docker + Compose** for DB, API, Prometheus, Grafana
 * **Prometheus /metrics** + ready‑to‑import Grafana dashboard
 * **Pytest**, **ruff**, **black**, **mypy** – wired in GitHub Actions CI
-* **≥90 % test coverage badge** auto‑committed on every push
+* **≥90 % comprehensive test suite** with pytest and async support
 * **Alembic** migrations (auto‑generate & run on start‑up)
 
 Roadmap → [#milestones](#roadmap).
@@ -104,7 +103,7 @@ black --check .               # formatting
 mypy app tests                # static types
 ```
 
-The CI workflow mirrors the same steps and publishes a coverage badge.
+The CI workflow mirrors the same steps with automated testing.
 
 ---
 
@@ -153,9 +152,6 @@ alembic/
 * 🚀 Deploy to **AWS Fargate** via Terraform
 * 📊 Publish Grafana dashboards to Grafana Cloud
 * 🛠️ Contribute two PRs to the FastAPI ecosystem
-* 🎓 Pass AWS Developer Associate exam
-* 🗣️ Mock interviews (DS/Algo & System Design)
-
 ---
 
 ## Contributing
