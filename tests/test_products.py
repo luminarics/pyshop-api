@@ -35,7 +35,7 @@ async def test_create_product(async_session: AsyncSession):
 @pytest.mark.asyncio
 async def test_pagination(async_session: AsyncSession):
     # Seed 3 rows
-    products = [Product(name=f"p{i}", price=float(i)) for i in range(3)]
+    products = [Product(name=f"p{i}", price=float(i + 1)) for i in range(3)]
     async_session.add_all(products)
     await async_session.commit()
 
@@ -111,11 +111,15 @@ async def get_auth_headers(client: AsyncClient):
     # signup
     await client.post(
         "/auth/register",
-        json={"email": "test@example.pl", "password": "hunter2", "username": "tester"},
+        json={
+            "email": "test@example.pl",
+            "password": "Hunter123",
+            "username": "tester",
+        },
     )
     login = await client.post(
         "/auth/jwt/login",
-        data={"username": "test@example.pl", "password": "hunter2"},  # dict, not str
+        data={"username": "test@example.pl", "password": "Hunter123"},  # dict, not str
         headers={"Content-Type": "application/x-www-form-urlencoded"},
     )
     assert login.status_code == 200

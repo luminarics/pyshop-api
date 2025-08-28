@@ -10,3 +10,14 @@ DATABASE_URL: str | URL = make_url(
 )
 
 GIT_SHA: str = os.getenv("GIT_SHA", "unknown")
+
+# CORS Configuration - restrictive origins
+CORS_ORIGINS = [
+    "http://localhost:3000",
+    "http://localhost:8080",
+    "https://yourdomain.com",
+]
+
+CORS_ORIGINS_ENV = os.getenv("CORS_ORIGINS", "")
+if CORS_ORIGINS_ENV:
+    CORS_ORIGINS = [origin.strip() for origin in CORS_ORIGINS_ENV.split(",")]

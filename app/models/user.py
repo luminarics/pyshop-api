@@ -1,10 +1,11 @@
-from pydantic import ConfigDict
+from pydantic import ConfigDict, Field, EmailStr, field_validator
 from uuid import UUID, uuid4
 from fastapi_users import schemas
 from fastapi_users.db import SQLAlchemyBaseUserTable
 from sqlalchemy import String, Boolean
 from sqlalchemy.dialects.postgresql import UUID as PostgresUUID
 from sqlalchemy.orm import DeclarativeBase, mapped_column, Mapped
+import re
 
 
 class Base(DeclarativeBase):
@@ -28,15 +29,79 @@ class User(SQLAlchemyBaseUserTable[UUID], Base):
 
 
 class UserRead(schemas.BaseUser[UUID]):
-    username: str
+    username: str = Field(
+        ..., min_length=3, max_length=50, description="Username between 3-50 characters"
+    )
     model_config = ConfigDict(from_attributes=True)
 
 
 class UserCreate(schemas.BaseUserCreate):
-    username: str
+    username: str = Field(
+        ..., min_length=3, max_length=50, description="Username between 3-50 characters"
+    )
+    email: EmailStr = Field(..., description="Valid email address required")
+    password: str = Field(
+        ...,
+        min_length=8,
+        max_length=128,
+        description="Password must be 8-128 characters",
+    )
     model_config = ConfigDict(from_attributes=True)
+
+    @field_validator("username")
+    @classmethod
+    def validate_username(cls, v: str) -> str:
+        if not re.match(r"^[a-zA-Z0-9_-]+$", v):
+            raise ValueError(
+                "Username can only contain letters, numbers, hyphens and underscores"
+            )
+        return v
+
+    @field_validator("password")
+    @classmethod
+    def validate_password(cls, v: str) -> str:
+        if not re.search(r"[A-Z]", v):
+            raise ValueError("Password must contain at least one uppercase letter")
+        if not re.search(r"[a-z]", v):
+            raise ValueError("Password must contain at least one lowercase letter")
+        if not re.search(r"\d", v):
+            raise ValueError("Password must contain at least one digit")
+        return v
 
 
 class UserUpdate(schemas.BaseUserUpdate):
-    username: str | None = None
+    username: str | None = Field(
+        None,
+        min_length=3,
+        max_length=50,
+        description="Username between 3-50 characters",
+    )
+    email: EmailStr | None = Field(None, description="Valid email address")
+    password: str | None = Field(
+        None,
+        min_length=8,
+        max_length=128,
+        description="Password must be 8-128 characters",
+    )
     model_config = ConfigDict(from_attributes=True)
+
+    @field_validator("username")
+    @classmethod
+    def validate_username(cls, v: str | None) -> str | None:
+        if v is not None and not re.match(r"^[a-zA-Z0-9_-]+$", v):
+            raise ValueError(
+                "Username can only contain letters, numbers, hyphens and underscores"
+            )
+        return v
+
+    @field_validator("password")
+    @classmethod
+    def validate_password(cls, v: str | None) -> str | None:
+        if v is not None:
+            if not re.search(r"[A-Z]", v):
+                raise ValueError("Password must contain at least one uppercase letter")
+            if not re.search(r"[a-z]", v):
+                raise ValueError("Password must contain at least one lowercase letter")
+            if not re.search(r"\d", v):
+                raise ValueError("Password must contain at least one digit")
+        return v

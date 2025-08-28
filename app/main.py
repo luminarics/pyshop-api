@@ -1,9 +1,10 @@
 # app/main.py
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from app.routers import products, profile
 from app.database import init_db
-from app.core.config import GIT_SHA
+from app.core.config import GIT_SHA, CORS_ORIGINS
 from prometheus_fastapi_instrumentator import Instrumentator
 from loguru import logger
 
@@ -24,6 +25,15 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+
+# CORS middleware with strict origins
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=CORS_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
+    allow_headers=["Authorization", "Content-Type"],
+)
 
 instrumentator = Instrumentator()
 
