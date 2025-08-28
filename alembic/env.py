@@ -5,16 +5,16 @@ import os
 from logging.config import fileConfig
 from sqlalchemy.ext.asyncio import async_engine_from_config
 from alembic import context  # type: ignore[attr-defined]
-from sqlmodel import SQLModel
+from app.models.user import Base
 
 # -------------------------------------------------
 config = context.config
 fileConfig(config.config_file_name)
 
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://app:app@db:5432/fastapi")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+asyncpg://app:app@db:5432/fastapi")
 config.set_main_option("sqlalchemy.url", DATABASE_URL)
 
-target_metadata = SQLModel.metadata
+target_metadata = Base.metadata
 # -------------------------------------------------
 
 

@@ -1,23 +1,22 @@
-from typing import Annotated
 from fastapi import HTTPException
 from typing import List
 from fastapi import APIRouter, Depends, status, Query
-from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import IntegrityError
 
 from app.models.product import Product
 from app.database import get_session
 from app.models.product import ProductCreate, ProductRead, ProductUpdate
+from app.models.user import User
+from app.routers.profile import current_active_user
 
 router = APIRouter()
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
 @router.get("/products/", response_model=List[ProductRead])
 async def list_products(
-    token: Annotated[str, Depends(oauth2_scheme)],
+    user: User = Depends(current_active_user),
     session: AsyncSession = Depends(get_session),
     limit: int = Query(10, ge=1),
     offset: int = Query(0, ge=0),
@@ -32,22 +31,26 @@ async def list_products(
     "/products/", response_model=ProductRead, status_code=status.HTTP_201_CREATED
 )
 async def create_product(
-    token: Annotated[str, Depends(oauth2_scheme)],
     product_data: ProductCreate,
+    user: User = Depends(current_active_user),
     session: AsyncSession = Depends(get_session),
 ):
     product = Product(**product_data.model_dump())
     session.add(product)
-    await session.commit()
+    try:
+        await session.commit()
+    except IntegrityError:
+        await session.rollback()
+        raise HTTPException(status_code=409, detail="Product with this name exists")
     await session.refresh(product)
     return product
 
 
 @router.put("/products/{product_id}", response_model=ProductRead)
 async def update_product(
-    token: Annotated[str, Depends(oauth2_scheme)],
     product_id: int,
     payload: ProductUpdate,
+    user: User = Depends(current_active_user),
     session: AsyncSession = Depends(get_session),
 ):
     result = await session.execute(select(Product).where(Product.id == product_id))
@@ -55,7 +58,7 @@ async def update_product(
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
 
-    for key, value in payload.model_dump().items():
+    for key, value in payload.model_dump(exclude_unset=True).items():
         setattr(product, key, value)
 
     await session.commit()
@@ -65,8 +68,8 @@ async def update_product(
 
 @router.delete("/products/{product_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_product(
-    token: Annotated[str, Depends(oauth2_scheme)],
     product_id: int,
+    user: User = Depends(current_active_user),
     session: AsyncSession = Depends(get_session),
 ):
     result = await session.execute(select(Product).where(Product.id == product_id))
