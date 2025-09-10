@@ -9,7 +9,7 @@
 
 ---
 
-## TL;DR
+##
 
 ```bash
 git clone https://github.com/luminarics/pyshop-api.git && cd pyshop-api
