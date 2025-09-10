@@ -2,6 +2,9 @@
 ### Flagship Python Project - Production-Ready E-Commerce API
 
 ![CI](https://github.com/luminarics/pyshop-api/actions/workflows/python-tests.yml/badge.svg) ![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi) ![Python](https://img.shields.io/badge/Python-3.10+-3776ab?logo=python&logoColor=white) ![Docker](https://img.shields.io/badge/Docker-Ready-2496ed?logo=docker&logoColor=white) ![Coverage](https://img.shields.io/badge/Coverage-90%25+-brightgreen) 
+
+---
+
 **An enterprise-grade, fully‑async e‑commerce API showcasing modern Python development excellence built with FastAPI 0.115 and SQLModel.** Features complete JWT authentication, real-time monitoring, and production-ready Docker deployment.
 
 ---
