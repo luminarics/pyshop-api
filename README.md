@@ -7,8 +7,6 @@
 
 **An enterprise-grade, fully‑async e‑commerce API showcasing modern Python development excellence built with FastAPI 0.115 and SQLModel.** Features complete JWT authentication, real-time monitoring, and production-ready Docker deployment.
 
----
-
 ##
 
 ```bash
