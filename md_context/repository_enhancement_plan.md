@@ -116,6 +116,44 @@ Based on the refactoring principles from `repo_refactor.md`, this plan outlines 
 - **SDK Generation**: Auto-generated Python client SDK
 - **API Changelog**: Automated API change documentation
 
+### Phase 2.5: Modern Web Frontend (Week 3-5)
+
+#### Tech Stack
+- **Framework**: Next.js 14 (App Router) + TypeScript
+- **Styling**: Tailwind CSS + shadcn/ui components
+- **Data**: TanStack Query for server state; Zustand for cart/client state
+- **HTTP**: Fetch/Axios with interceptors; `NEXT_PUBLIC_API_BASE_URL`
+- **Quality**: ESLint + Prettier; Testing Library; Playwright E2E
+
+#### Milestones
+- **2.5.1 Project Setup**: Scaffold `frontend/` Next.js app, Tailwind, shadcn/ui, base layout, theming
+- **2.5.2 Auth**: Login/Register pages; JWT via httpOnly cookie if supported (CORS + credentials), fallback localStorage; protected routes; profile page
+- **2.5.3 Catalog**: Product grid with search/filter/sort/pagination; product detail with images/specs
+- **2.5.4 Cart & Checkout**: Add-to-cart with optimistic updates; cart page; checkout flow with mock payment; order confirmation
+- **2.5.5 Orders**: Order history and order detail pages
+- **2.5.6 Admin (optional)**: Product CRUD dashboard (role-gated)
+
+#### API Integration
+- **Endpoints map**: `/products`, `/products/{id}`, `/auth/login`, `/auth/register`, `/cart`, `/orders` (align with backend routes)
+- **Errors**: Global API error handler with toasts; retry/backoff on transient errors
+- **Auth/Cookies**: If using cookies, set `credentials: 'include'`, configure CORS and `Set-Cookie` on API
+
+#### Testing & Quality
+- **Unit/Component**: React Testing Library + Vitest/Jest
+- **E2E**: Playwright smoke suite (auth → browse → add-to-cart → checkout)
+- **Accessibility**: Axe checks; keyboard navigation; focus states
+
+#### DevOps
+- **Docker**: `frontend/Dockerfile`; add `frontend` to `docker-compose.yml` on port `3000`
+- **CI**: GitHub Actions job for install, lint, test, build, Playwright E2E
+- **Env**: `.env.local` with `NEXT_PUBLIC_API_BASE_URL=http://localhost:8000`
+- **Preview Deploys**: Optional Vercel/Netlify previews per PR
+
+#### Success Criteria
+- **Performance**: Lighthouse ≥ 90 (Perf, Best Practices, Accessibility)
+- **Reliability**: E2E suite green on CI; flaky tests < 2%
+- **UX**: Loading/empty/error states implemented for all data views
+
 ## Implementation Priority Matrix
 
 | Enhancement | Impact | Effort | Priority |
@@ -123,6 +161,7 @@ Based on the refactoring principles from `repo_refactor.md`, this plan outlines 
 | Visual Documentation | High | Low | P0 |
 | Security Features | High | Medium | P0 |
 | Performance Optimizations | High | Medium | P1 |
+| Frontend Web App | High | Medium | P1 |
 | Advanced Testing | Medium | Medium | P1 |
 | Business Logic | High | High | P2 |
 | DevOps Pipeline | Medium | High | P2 |
