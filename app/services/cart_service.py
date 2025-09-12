@@ -27,17 +27,20 @@ class CartService:
             raise ValueError("Either user_id or session_id must be provided")
 
         # Try to find existing active cart
+        conditions = [Cart.status == CartStatus.ACTIVE]
+
+        or_conditions = []
+        if user_id:
+            or_conditions.append(Cart.user_id == user_id)
+        if session_id:
+            or_conditions.append(Cart.session_id == session_id)
+
+        if or_conditions:
+            conditions.append(or_(*or_conditions))
+
         query = (
             select(Cart)
-            .where(
-                and_(
-                    Cart.status == CartStatus.ACTIVE,
-                    or_(
-                        Cart.user_id == user_id if user_id else False,
-                        Cart.session_id == session_id if session_id else False,
-                    ),
-                )
-            )
+            .where(and_(*conditions))
             .options(selectinload(Cart.items).selectinload(CartItem.product))
         )
 

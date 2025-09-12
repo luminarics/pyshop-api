@@ -2,8 +2,7 @@ import os
 from httpx import AsyncClient
 import pytest
 import pytest_asyncio
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.pool import StaticPool
 
 os.environ.setdefault("SECRET_KEY", "test_secret_for_pytest")
@@ -22,7 +21,7 @@ engine = create_async_engine(
     poolclass=StaticPool,
 )
 
-AsyncTestingSessionLocal = sessionmaker(
+AsyncTestingSessionLocal = async_sessionmaker(
     bind=engine,
     class_=AsyncSession,
     expire_on_commit=False,

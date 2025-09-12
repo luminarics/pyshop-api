@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.routers import products, profile, cart
 from app.database import init_db
 from app.core.config import GIT_SHA, CORS_ORIGINS
+from app.middleware import SessionMiddleware
 from prometheus_fastapi_instrumentator import Instrumentator
 from loguru import logger
 
@@ -25,6 +26,9 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+
+# Session middleware for cart functionality (before CORS)
+app.add_middleware(SessionMiddleware)
 
 # CORS middleware with strict origins
 app.add_middleware(

@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(poetry run pytest:*)"
+      "Bash(poetry run pytest:*)",
+      "Bash(ruff check:*)",
+      "Bash(mypy:*)"
     ],
     "deny": [],
     "ask": []

@@ -1,6 +1,6 @@
 from typing import Optional
 from uuid import UUID
-from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi import APIRouter, Depends, HTTPException
 from app.dependencies.cart import get_cart_service, get_current_cart, get_session_id
 from app.services.cart_service import CartService
 from app.models.cart import (
@@ -13,7 +13,7 @@ from app.models.cart import (
     BulkCartUpdate,
 )
 from app.models.user import User
-from app.routers.profile import current_user_optional, current_active_user
+from app.routers.profile import current_active_user
 
 
 router = APIRouter(prefix="/cart", tags=["cart"])
@@ -21,49 +21,21 @@ router = APIRouter(prefix="/cart", tags=["cart"])
 
 @router.get("", response_model=CartRead)
 async def get_cart(
-    response: Response,
     current_cart: Cart = Depends(get_current_cart),
     cart_service: CartService = Depends(get_cart_service),
-    session_id: Optional[str] = Depends(get_session_id),
-    current_user: Optional[User] = Depends(current_user_optional),
 ):
     """Get current user's cart with all items."""
-    # Set session cookie for guest users
-    if not current_user and session_id:
-        response.set_cookie(
-            key="pyshop_cart_session",
-            value=session_id,
-            max_age=7 * 24 * 60 * 60,  # 7 days
-            httponly=True,
-            samesite="lax",
-            secure=False,  # Set to True in production with HTTPS
-        )
-
     return await cart_service.get_cart_read_model(current_cart)
 
 
 @router.post("/items", response_model=CartItemRead)
 async def add_item_to_cart(
     item: CartItemCreate,
-    response: Response,
     current_cart: Cart = Depends(get_current_cart),
     cart_service: CartService = Depends(get_cart_service),
-    session_id: Optional[str] = Depends(get_session_id),
-    current_user: Optional[User] = Depends(current_user_optional),
 ):
     """Add item to cart or update quantity if item already exists."""
     try:
-        # Set session cookie for guest users
-        if not current_user and session_id:
-            response.set_cookie(
-                key="pyshop_cart_session",
-                value=session_id,
-                max_age=7 * 24 * 60 * 60,  # 7 days
-                httponly=True,
-                samesite="lax",
-                secure=False,  # Set to True in production with HTTPS
-            )
-
         cart_item = await cart_service.add_item(
             cart_id=current_cart.id, product_id=item.product_id, quantity=item.quantity
         )

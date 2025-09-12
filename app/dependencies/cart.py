@@ -1,12 +1,13 @@
 from typing import Optional
-from uuid import UUID, uuid4
-from fastapi import Depends, Cookie, Request
+from uuid import UUID
+from fastapi import Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_session
 from app.services.cart_service import CartService
 from app.models.cart import Cart
 from app.models.user import User
 from app.routers.profile import current_user_optional
+from app.middleware import get_session_id_from_state
 
 
 def get_cart_service(session: AsyncSession = Depends(get_session)) -> CartService:
@@ -14,20 +15,12 @@ def get_cart_service(session: AsyncSession = Depends(get_session)) -> CartServic
     return CartService(session)
 
 
-def get_session_id(
-    request: Request,
-    pyshop_cart_session: Optional[str] = Cookie(None, alias="pyshop_cart_session"),
-) -> Optional[str]:
-    """Get or generate cart session ID from cookie."""
-    if pyshop_cart_session:
-        return pyshop_cart_session
-
-    # Generate new session ID for guest carts
-    new_session_id = str(uuid4())
-
-    # Note: We can't set the cookie here since this is just a dependency
-    # The cookie will be set in the route handler
-    return new_session_id
+def get_session_id(request: Request) -> Optional[str]:
+    """
+    Get cart session ID from middleware state.
+    The SessionMiddleware provides this via request.state.session_id
+    """
+    return get_session_id_from_state(request)
 
 
 async def get_current_cart(
