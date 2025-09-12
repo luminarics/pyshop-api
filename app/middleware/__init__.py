@@ -1,3 +1,13 @@
-from .session import SessionMiddleware, get_session_id_from_state
+from .session import (
+    SessionMiddleware,
+    CookieCleanupMiddleware,
+    get_session_id_from_state,
+    get_secure_session_cookie,
+)
 
-__all__ = ["SessionMiddleware", "get_session_id_from_state"]
+__all__ = [
+    "SessionMiddleware",
+    "CookieCleanupMiddleware",
+    "get_session_id_from_state",
+    "get_secure_session_cookie",
+]
