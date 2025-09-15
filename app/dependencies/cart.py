@@ -15,6 +15,13 @@ def get_cart_service(session: AsyncSession = Depends(get_session)) -> CartServic
     return CartService(session)
 
 
+def get_cart_resolution_service(session: AsyncSession = Depends(get_session)):
+    """Dependency to get cart resolution service instance."""
+    from app.services.cart_resolution import CartResolutionService
+
+    return CartResolutionService(session)
+
+
 def get_session_id(request: Request) -> Optional[str]:
     """
     Get cart session ID from middleware state.

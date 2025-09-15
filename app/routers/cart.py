@@ -1,7 +1,12 @@
 from typing import Optional
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException
-from app.dependencies.cart import get_cart_service, get_current_cart, get_session_id
+from app.dependencies.cart import (
+    get_cart_service,
+    get_current_cart,
+    get_session_id,
+    get_cart_resolution_service,
+)
 from app.services.cart_service import CartService
 from app.models.cart import (
     Cart,
@@ -11,6 +16,7 @@ from app.models.cart import (
     CartItemRead,
     CartSummary,
     BulkCartUpdate,
+    CartValidationResult,
 )
 from app.models.user import User
 from app.routers.profile import current_active_user
@@ -223,3 +229,131 @@ async def cleanup_expired_carts(
         }
     except Exception:
         raise HTTPException(status_code=500, detail="Failed to cleanup expired carts")
+
+
+# Cart Resolution and Validation Endpoints
+
+
+@router.post("/validate", response_model=CartValidationResult)
+async def validate_cart(
+    current_cart: Cart = Depends(get_current_cart),
+    resolution_service=Depends(get_cart_resolution_service),
+):
+    """
+    Validate cart items, check for price changes, and verify availability.
+    Returns validation result with errors, warnings, and updated items.
+    """
+    try:
+        validation_result = await resolution_service.resolve_and_validate_cart(
+            current_cart.id
+        )
+        return validation_result
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Failed to validate cart: {str(e)}"
+        )
+
+
+@router.post("/optimize")
+async def optimize_cart(
+    current_cart: Cart = Depends(get_current_cart),
+    resolution_service=Depends(get_cart_resolution_service),
+):
+    """
+    Optimize cart by removing invalid items and fixing quantity constraints.
+    """
+    try:
+        changes_made, messages = await resolution_service.optimize_cart(current_cart.id)
+
+        return {
+            "optimized": changes_made,
+            "messages": messages,
+            "cart_id": str(current_cart.id),
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Failed to optimize cart: {str(e)}"
+        )
+
+
+@router.get("/health", response_model=dict)
+async def get_cart_health(
+    current_cart: Cart = Depends(get_current_cart),
+    resolution_service=Depends(get_cart_resolution_service),
+):
+    """
+    Get comprehensive health report for the current cart.
+    """
+    try:
+        health_report = await resolution_service.get_cart_health_report(current_cart.id)
+        return health_report
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get cart health report: {str(e)}"
+        )
+
+
+@router.post("/resolve-conflicts")
+async def resolve_cart_conflicts(
+    target_cart_id: UUID,
+    current_cart: Cart = Depends(get_current_cart),
+    cart_service: CartService = Depends(get_cart_service),
+    resolution_service=Depends(get_cart_resolution_service),
+    current_user: User = Depends(current_active_user),
+):
+    """
+    Manually resolve conflicts between current cart and specified target cart.
+    Typically used for advanced cart management scenarios.
+    """
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Authentication required")
+
+    try:
+        # Get target cart
+        target_cart = await cart_service.get_cart_by_id(target_cart_id)
+        if not target_cart:
+            raise HTTPException(status_code=404, detail="Target cart not found")
+
+        # Verify user owns target cart
+        if target_cart.user_id != current_user.id:
+            raise HTTPException(status_code=403, detail="Access denied to target cart")
+
+        resolved_cart, messages = await resolution_service.resolve_cart_conflicts(
+            user_cart=target_cart, session_cart=current_cart
+        )
+
+        return {
+            "resolved_cart_id": str(resolved_cart.id),
+            "resolution_messages": messages,
+            "items_count": len(resolved_cart.items),
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Failed to resolve cart conflicts: {str(e)}"
+        )
+
+
+# Admin endpoint for cleaning up abandoned carts
+@router.post("/admin/cleanup-abandoned")
+async def cleanup_abandoned_carts(
+    days_old: int = 30,
+    current_user: User = Depends(current_active_user),
+    resolution_service=Depends(get_cart_resolution_service),
+):
+    """
+    Clean up abandoned carts older than specified days (admin endpoint).
+    """
+    try:
+        cleaned_count = await resolution_service.cleanup_abandoned_carts(days_old)
+
+        return {
+            "message": f"Cleaned up {cleaned_count} abandoned carts older than {days_old} days",
+            "count": cleaned_count,
+            "days_old": days_old,
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Failed to cleanup abandoned carts: {str(e)}"
+        )

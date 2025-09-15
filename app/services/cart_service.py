@@ -248,7 +248,10 @@ class CartService:
         )
 
     async def merge_carts(self, source_cart_id: UUID, target_cart_id: UUID) -> Cart:
-        """Merge source cart items into target cart."""
+        """
+        Merge source cart items into target cart using advanced resolution logic.
+        This method now uses CartResolutionService for conflict resolution.
+        """
         # Get both carts
         source_cart = await self.get_cart_by_id(source_cart_id)
         target_cart = await self.get_cart_by_id(target_cart_id)
@@ -256,40 +259,18 @@ class CartService:
         if not source_cart or not target_cart:
             raise ValueError("Source or target cart not found")
 
-        # Merge items from source to target
-        for source_item in source_cart.items:
-            # Check if target cart already has this product
-            existing_target_item = None
-            for target_item in target_cart.items:
-                if target_item.product_id == source_item.product_id:
-                    existing_target_item = target_item
-                    break
+        # Use resolution service for advanced merge logic
+        from app.services.cart_resolution import CartResolutionService
 
-            if existing_target_item:
-                # Update quantity in existing item
-                existing_target_item.quantity += source_item.quantity
-                existing_target_item.updated_at = datetime.utcnow()
-            else:
-                # Move item to target cart
-                source_item.cart_id = target_cart_id
-                source_item.updated_at = datetime.utcnow()
+        resolution_service = CartResolutionService(self.session)
 
-        # Mark source cart as abandoned
-        source_cart.status = CartStatus.ABANDONED
-        source_cart.updated_at = datetime.utcnow()
+        resolved_cart, resolution_messages = (
+            await resolution_service.resolve_cart_conflicts(
+                user_cart=target_cart, session_cart=source_cart
+            )
+        )
 
-        # Update target cart
-        target_cart.updated_at = datetime.utcnow()
-
-        await self.session.commit()
-
-        # Refresh target cart with updated items
-        await self.session.refresh(target_cart)
-        # Re-fetch to ensure relationships are loaded and non-None
-        merged = await self.get_cart_by_id(target_cart_id)
-        if merged is None:
-            raise ValueError("Target cart not found after merge")
-        return merged
+        return resolved_cart
 
     async def cleanup_expired_carts(self) -> int:
         """Clean up expired guest carts. Returns number of carts cleaned up."""
