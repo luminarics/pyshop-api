@@ -1,4 +1,46 @@
-pycache/
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
 .venv/
+.env
+.pytest_cache/
+
+# Development
 tests/
+.coverage
+htmlcov/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Git
 .git/
+.gitignore
+
+# Documentation
+README.md
+docs/
+*.md
+
+# Logs
+logs/
+*.log
+
+# Frontend (exclude from API build)
+frontend/
+node_modules/
+
+# Database
+*.db
+*.sqlite
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Monitoring (already in compose)
+monitoring/

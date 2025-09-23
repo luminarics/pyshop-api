@@ -26,7 +26,7 @@ export const formatDateTime = (date: string | Date): string => {
 
 export const truncateText = (text: string, maxLength: number): string => {
   if (text.length <= maxLength) return text;
-  return text.slice(0, maxLength) + "...";
+  return `${text.slice(0, maxLength)}...`;
 };
 
 export const capitalizeFirst = (str: string): string => {
@@ -34,7 +34,7 @@ export const capitalizeFirst = (str: string): string => {
 };
 
 export const generateId = (): string => {
-  return Math.random().toString(36).substring(2) + Date.now().toString(36);
+  return `${Math.random().toString(36).substring(2)}${Date.now().toString(36)}`;
 };
 
 export const sleep = (ms: number): Promise<void> => {

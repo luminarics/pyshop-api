@@ -23,7 +23,8 @@ export const config = {
   // Features flags
   features: {
     enableRegistration: process.env.NEXT_PUBLIC_ENABLE_REGISTRATION !== "false",
-    enableGuestCheckout: process.env.NEXT_PUBLIC_ENABLE_GUEST_CHECKOUT === "true",
+    enableGuestCheckout:
+      process.env.NEXT_PUBLIC_ENABLE_GUEST_CHECKOUT === "true",
     enableAnalytics: process.env.NEXT_PUBLIC_ENABLE_ANALYTICS === "true",
   },
 
