@@ -40,3 +40,15 @@ export const generateId = (): string => {
 export const sleep = (ms: number): Promise<void> => {
   return new Promise(resolve => setTimeout(resolve, ms));
 };
+
+// Re-export responsive utilities
+export {
+  responsive,
+  responsiveGridUtils,
+  createResponsiveGrid,
+  createResponsivePadding,
+  createResponsiveMargin,
+  hideOn,
+  showOn,
+  responsiveFlex,
+} from "./responsive";
