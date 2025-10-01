@@ -4,13 +4,14 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  /* Responsive breakpoints */
+  /* Responsive breakpoints - aligned with config/breakpoints.ts */
   --breakpoint-xs: 475px;
   --breakpoint-sm: 640px;
   --breakpoint-md: 768px;
   --breakpoint-lg: 1024px;
   --breakpoint-xl: 1280px;
   --breakpoint-2xl: 1536px;
+
 
   /* Colors */
   --color-background: var(--background);
@@ -60,6 +61,7 @@
   --container-lg: 1024px;
   --container-xl: 1280px;
   --container-2xl: 1536px;
+
 }
 
 :root {

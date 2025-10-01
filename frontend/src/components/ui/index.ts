@@ -58,3 +58,26 @@ export {
   TableRow,
 } from "./table";
 export { Toaster } from "./sonner";
+
+// Loading components
+export {
+  LoadingSpinner,
+  LoadingDots,
+  LoadingSkeleton,
+  LoadingState,
+  LoadingOverlay,
+  LoadingButton,
+  LoadingCard,
+} from "./loading";
+
+// Error components
+export {
+  ErrorMessage,
+  ErrorState,
+  ErrorBoundaryFallback,
+  ErrorCard,
+  FormError,
+  ErrorAlert,
+  NetworkError,
+  NotFoundError,
+} from "./error";

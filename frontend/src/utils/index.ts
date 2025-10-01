@@ -44,11 +44,6 @@ export const sleep = (ms: number): Promise<void> => {
 // Re-export responsive utilities
 export {
   responsive,
-  responsiveGridUtils,
-  createResponsiveGrid,
-  createResponsivePadding,
-  createResponsiveMargin,
-  hideOn,
-  showOn,
-  responsiveFlex,
+  responsiveUtils,
+  visibility,
 } from "./responsive";

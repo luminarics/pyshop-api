@@ -10,84 +10,21 @@ export const breakpoints = {
 
 export type Breakpoint = keyof typeof breakpoints;
 
-// Common responsive patterns
-export const responsivePatterns = {
-  // Grid columns
-  gridCols: {
-    mobile: "grid-cols-1",
-    tablet: "md:grid-cols-2",
-    desktop: "lg:grid-cols-3",
-    wide: "xl:grid-cols-4",
-  },
+// Simple responsive patterns - use Tailwind classes directly
+export const commonPatterns = {
+  // Common grid patterns (use directly in components)
+  productGrid: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5",
+  featureGrid: "grid-cols-1 md:grid-cols-2 lg:grid-cols-3",
+  categoryGrid: "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6",
 
-  // Product grid
-  productGrid: {
-    mobile: "grid-cols-1",
-    tablet: "sm:grid-cols-2",
-    desktop: "lg:grid-cols-3",
-    wide: "xl:grid-cols-4",
-    ultraWide: "2xl:grid-cols-5",
-  },
+  // Common spacing patterns
+  containerPadding: "px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16",
+  sectionPadding: "py-8 sm:py-12 lg:py-16 xl:py-20",
 
-  // Container sizes
-  container: {
-    mobile: "px-4",
-    tablet: "sm:px-6",
-    desktop: "lg:px-8",
-    wide: "xl:px-12",
-    ultraWide: "2xl:px-16",
-  },
-
-  // Text sizes
-  headings: {
-    h1: {
-      mobile: "text-2xl",
-      tablet: "sm:text-3xl",
-      desktop: "lg:text-4xl",
-      wide: "xl:text-5xl",
-    },
-    h2: {
-      mobile: "text-xl",
-      tablet: "sm:text-2xl",
-      desktop: "lg:text-3xl",
-      wide: "xl:text-4xl",
-    },
-    h3: {
-      mobile: "text-lg",
-      tablet: "sm:text-xl",
-      desktop: "lg:text-2xl",
-      wide: "xl:text-3xl",
-    },
-  },
-
-  // Navigation
-  nav: {
-    mobile: "flex-col space-y-2",
-    desktop: "lg:flex-row lg:space-y-0 lg:space-x-6",
-  },
-
-  // Sidebar
-  sidebar: {
-    mobile: "w-full",
-    tablet: "sm:w-64",
-    desktop: "lg:w-72",
-    wide: "xl:w-80",
-  },
-
-  // Cards
-  card: {
-    mobile: "p-4",
-    tablet: "sm:p-6",
-    desktop: "lg:p-8",
-  },
-
-  // Images
-  image: {
-    mobile: "w-full h-48",
-    tablet: "sm:h-56",
-    desktop: "md:h-64",
-    wide: "lg:h-72",
-  },
+  // Common text patterns
+  headingLarge: "text-2xl sm:text-3xl lg:text-4xl xl:text-5xl",
+  headingMedium: "text-xl sm:text-2xl lg:text-3xl xl:text-4xl",
+  headingSmall: "text-lg sm:text-xl lg:text-2xl",
 } as const;
 
 // Media query strings for JavaScript

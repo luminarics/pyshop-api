@@ -13,10 +13,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useBreakpoint, useDeviceType, useIsMobile } from "@/hooks";
 import {
-  responsiveGridUtils,
-  createResponsiveGrid,
-  hideOn,
-  showOn,
+  responsiveUtils,
+  visibility,
 } from "@/utils";
 import { cn } from "@/lib/utils";
 
@@ -45,24 +43,15 @@ export function ResponsiveExample() {
       <ResponsiveContainer>
         <ResponsiveText
           as="h1"
-          size={{
-            xs: "text-2xl",
-            sm: "text-3xl",
-            lg: "text-4xl",
-            xl: "text-5xl",
-          }}
-          className="font-bold text-center mb-4"
+          variant="h1"
+          className="text-center mb-4"
         >
           Responsive Typography
         </ResponsiveText>
 
         <ResponsiveText
           as="p"
-          size={{
-            xs: "text-sm",
-            sm: "text-base",
-            lg: "text-lg",
-          }}
+          variant="large"
           className="text-center text-muted-foreground"
         >
           This text adapts to different screen sizes using the responsive
@@ -129,12 +118,7 @@ export function ResponsiveExample() {
       {/* Custom Responsive Grid */}
       <ResponsiveContainer>
         <h2 className="text-2xl font-bold mb-6">Custom Responsive Grid</h2>
-        <div
-          className={createResponsiveGrid(
-            { xs: 1, sm: 2, md: 3, lg: 4, xl: 5 },
-            { xs: 4, sm: 4, md: 6, lg: 6, xl: 8 }
-          )}
-        >
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-4 md:gap-6 lg:gap-6 xl:gap-8">
           {Array.from({ length: 8 }, (_, i) => (
             <Card key={i} className="p-4">
               <div className="aspect-video bg-gradient-to-br from-primary/20 to-primary/5 rounded mb-3"></div>
@@ -148,27 +132,27 @@ export function ResponsiveExample() {
       <ResponsiveContainer>
         <h2 className="text-2xl font-bold mb-6">Responsive Visibility</h2>
         <div className="space-y-4">
-          <Card className={cn("p-4", hideOn(["lg", "xl", "2xl"]))}>
+          <Card className={cn("p-4", visibility.mobileAndTablet)}>
             <p className="text-center">
               📱 This card is only visible on mobile and tablet (hidden on lg
               and above)
             </p>
           </Card>
 
-          <Card className={cn("p-4", showOn(["lg", "xl", "2xl"]), "hidden")}>
+          <Card className={cn("p-4", visibility.desktopOnly)}>
             <p className="text-center">
               🖥️ This card is only visible on desktop (lg and above)
             </p>
           </Card>
 
           <div className="flex justify-center space-x-4">
-            <Badge className={cn(hideOn(["md", "lg", "xl", "2xl"]))}>
+            <Badge className={visibility.mobileOnly}>
               Mobile Only
             </Badge>
-            <Badge className={cn("hidden", showOn(["md"]))} variant="secondary">
+            <Badge className={visibility.tabletAndDesktop} variant="secondary">
               Tablet+
             </Badge>
-            <Badge className={cn("hidden", showOn(["lg"]))} variant="outline">
+            <Badge className={visibility.desktopOnly} variant="outline">
               Desktop+
             </Badge>
           </div>
@@ -203,12 +187,7 @@ export function ResponsiveExample() {
         {/* Card Stack */}
         <Card className="p-6 mt-6">
           <h3 className="text-lg font-semibold mb-4">Responsive Card Stack</h3>
-          <div
-            className={cn(
-              responsiveGridUtils.featureGrid,
-              responsiveGridUtils.gap.medium
-            )}
-          >
+          <div className={responsiveUtils.featureGrid}>
             <Card className="p-4">
               <h4 className="font-medium">Card 1</h4>
               <p className="text-sm text-muted-foreground mt-2">
