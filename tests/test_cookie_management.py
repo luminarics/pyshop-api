@@ -313,17 +313,22 @@ class TestEnhancedSessionMiddleware:
             middleware=[Middleware(SessionMiddleware, secure=False)],
         )
 
+        # Use separate clients to avoid cookie jar interference
         async with AsyncClient(
             transport=ASGITransport(app=app), base_url="http://test"
-        ) as client:
+        ) as client1:
             # First request - gets new session
-            response1 = await client.get("/cart")
+            response1 = await client1.get("/cart")
             session_id1 = response1.json()["session_id"]
 
+        # New client with tampered cookie
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test", cookies={}
+        ) as client2:
             # Second request with tampered cookie
             tampered_cookie = "tampered_session_id.invalid_signature"
             cookies = {"pyshop_cart_session": tampered_cookie}
-            response2 = await client.get("/cart", cookies=cookies)
+            response2 = await client2.get("/cart", cookies=cookies)
             session_id2 = response2.json()["session_id"]
 
             # Should generate new session ID due to invalid cookie
