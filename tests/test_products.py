@@ -1,24 +1,20 @@
 import pytest
 from sqlmodel import select
-from httpx import AsyncClient, ASGITransport
+from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.main import app
 from app.models.product import Product
 from app.models.product import ProductCreate
 
 
 @pytest.mark.asyncio
-async def test_create_product(async_session: AsyncSession):
+async def test_create_product(client: AsyncClient, async_session: AsyncSession):
     # Hit the API
     payload = ProductCreate(name="Test Product", price=10.99)
-    async with AsyncClient(
-        transport=ASGITransport(app=app), base_url="http://test"
-    ) as ac:
-        headers = await get_auth_headers(ac)
-        response = await ac.post(
-            "/products/", json=payload.model_dump(), headers=headers
-        )
+    headers = await get_auth_headers(client)
+    response = await client.post(
+        "/products/", json=payload.model_dump(), headers=headers
+    )
 
     assert response.status_code == 201
     data = response.json()
@@ -33,18 +29,16 @@ async def test_create_product(async_session: AsyncSession):
 
 
 @pytest.mark.asyncio
-async def test_pagination(async_session: AsyncSession):
+async def test_pagination(client: AsyncClient, async_session: AsyncSession):
     # Seed 3 rows
     products = [Product(name=f"p{i}", price=float(i + 1)) for i in range(3)]
     async_session.add_all(products)
     await async_session.commit()
 
+    headers = await get_auth_headers(client)
+
     # Test first page
-    async with AsyncClient(
-        transport=ASGITransport(app=app), base_url="http://test"
-    ) as ac:
-        headers = await get_auth_headers(ac)
-        response = await ac.get("/products/?offset=0&limit=2", headers=headers)
+    response = await client.get("/products/?offset=0&limit=2", headers=headers)
 
     assert response.status_code == 200
     data = response.json()
@@ -53,11 +47,7 @@ async def test_pagination(async_session: AsyncSession):
     assert data[1]["name"] == "p1"
 
     # Test second page
-    async with AsyncClient(
-        transport=ASGITransport(app=app), base_url="http://test"
-    ) as ac:
-        headers = await get_auth_headers(ac)
-        response = await ac.get("/products/?offset=2&limit=2", headers=headers)
+    response = await client.get("/products/?offset=2&limit=2", headers=headers)
 
     assert response.status_code == 200
     data = response.json()
@@ -66,20 +56,17 @@ async def test_pagination(async_session: AsyncSession):
 
 
 @pytest.mark.asyncio
-async def test_update_product(async_session: AsyncSession):
+async def test_update_product(client: AsyncClient, async_session: AsyncSession):
     # Create a product first
     product = Product(name="Old Name", price=9.99)
     async_session.add(product)
     await async_session.commit()
     # Update it
     update_payload = {"name": "New Name", "price": 19.99}
-    async with AsyncClient(
-        transport=ASGITransport(app=app), base_url="http://test"
-    ) as ac:
-        headers = await get_auth_headers(ac)
-        response = await ac.put(
-            f"/products/{product.id}", json=update_payload, headers=headers
-        )
+    headers = await get_auth_headers(client)
+    response = await client.put(
+        f"/products/{product.id}", json=update_payload, headers=headers
+    )
 
     assert response.status_code == 200
     data = response.json()
