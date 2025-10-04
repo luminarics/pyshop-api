@@ -3,13 +3,9 @@
 import os
 import time
 from collections.abc import Generator
-from typing import Any
 
 import pytest
 from playwright.sync_api import APIRequestContext, Page, Playwright
-
-# Disable asyncio mode for E2E tests to avoid conflicts with Playwright's sync API
-pytest_plugins = ("pytest_playwright",)
 
 
 @pytest.fixture(scope="session")

@@ -11,6 +11,9 @@ from app.database import get_session
 from app.main import app as fastapi_app
 from app.models.user import Base
 
+# Enable pytest-playwright plugin
+pytest_plugins = ("pytest_playwright",)
+
 
 # Configure test database
 ASYNC_SQLITE_URL = "sqlite+aiosqlite:///:memory:"
