@@ -1,6 +1,6 @@
 import pytest
 from fastapi import FastAPI, Request, Response
-from httpx import AsyncClient
+from httpx import AsyncClient, ASGITransport
 from starlette.applications import Starlette
 from starlette.middleware import Middleware
 from starlette.responses import JSONResponse
@@ -107,7 +107,9 @@ class TestSecureCookie:
             cookie_value = self.secure_cookie.get_cookie(request)
             return {"cookie_value": cookie_value}
 
-        async with AsyncClient(app=app, base_url="http://test") as client:
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test"
+        ) as client:
             # Set cookie
             response = await client.get("/set-cookie")
             assert response.status_code == 200
@@ -130,7 +132,9 @@ class TestSecureCookie:
             cookie_value = self.secure_cookie.get_cookie(request)
             return {"cookie_value": cookie_value}
 
-        async with AsyncClient(app=app, base_url="http://test") as client:
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test"
+        ) as client:
             # Try with tampered cookie
             tampered_cookie = "tampered_value.invalid_signature"
             cookies = {"test_cookie": tampered_cookie}
@@ -159,7 +163,9 @@ class TestSecureCookie:
             cookie_data = self.secure_cookie.get_cookie_data(request)
             return {"cookie_data": cookie_data}
 
-        async with AsyncClient(app=app, base_url="http://test") as client:
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test"
+        ) as client:
             # Set dictionary cookie
             response = await client.get("/set-dict-cookie")
             assert response.status_code == 200
@@ -203,7 +209,9 @@ class TestCookieStore:
             self.cookie_store.delete_value(request, response, "username")
             return {"status": "value_deleted"}
 
-        async with AsyncClient(app=app, base_url="http://test") as client:
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test"
+        ) as client:
             # Store value
             response = await client.get("/store-value")
             assert response.status_code == 200
@@ -245,7 +253,9 @@ class TestEnhancedSessionMiddleware:
             ],
         )
 
-        async with AsyncClient(app=app, base_url="http://test") as client:
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test"
+        ) as client:
             response = await client.get("/cart")
             assert response.status_code == 200
             data = response.json()
@@ -274,7 +284,9 @@ class TestEnhancedSessionMiddleware:
             middleware=[Middleware(SessionMiddleware, secure=False)],
         )
 
-        async with AsyncClient(app=app, base_url="http://test") as client:
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test"
+        ) as client:
             # First request - gets new session
             response1 = await client.get("/cart")
             session_id1 = response1.json()["session_id"]
@@ -301,7 +313,9 @@ class TestEnhancedSessionMiddleware:
             middleware=[Middleware(SessionMiddleware, secure=False)],
         )
 
-        async with AsyncClient(app=app, base_url="http://test") as client:
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test"
+        ) as client:
             # First request - gets new session
             response1 = await client.get("/cart")
             session_id1 = response1.json()["session_id"]
