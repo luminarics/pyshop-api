@@ -35,6 +35,9 @@ docker compose up --build         # API → http://localhost:8000 ⚡️
 * **Pytest**, **ruff**, **black**, **mypy** – wired in GitHub Actions CI
 * **≥90 % comprehensive test suite** with pytest and async support
 * **Alembic** migrations (auto‑generate & run on start‑up)
+* **GitHub Actions CI/CD** - Automated testing, linting, and Docker image publishing
+* **Playwright E2E Tests** - Comprehensive end-to-end testing suite
+* **Development Scripts** - Automated setup, testing, and database management
 
 ### 💎 What Makes This Project Stand Out
 
@@ -61,6 +64,13 @@ Roadmap → [#milestones](#roadmap).
 ## Local development (Poetry)
 
 ```bash
+# Automated setup (recommended)
+./scripts/setup.sh               # installs deps, creates .env, starts Docker
+
+# Start development server
+./scripts/dev.sh                 # starts DB, runs migrations, starts server with hot reload
+
+# Or manually
 poetry install --with dev
 export SECRET_KEY=dev123
 export DATABASE_URL=sqlite+aiosqlite:///:memory:
@@ -106,11 +116,19 @@ curl -H "Authorization: Bearer $TOKEN" http://localhost:8000/profile
 ## Running tests & linters
 
 ```bash
-# inside venv / poetry shell
-pytest -q                     # unit tests
-ruff .                        # lint
-black --check .               # formatting
-mypy app tests                # static types
+# Using helper scripts (recommended)
+./scripts/test.sh                # run unit tests
+./scripts/test.sh --e2e          # run all tests including E2E
+./scripts/test.sh --coverage     # run with coverage report
+./scripts/lint.sh                # run all linters
+./scripts/lint.sh --fix          # auto-fix issues
+
+# Or manually inside venv / poetry shell
+pytest -q -m "not e2e"       # unit tests only
+pytest tests/e2e -m e2e      # E2E tests (requires running server)
+ruff .                       # lint
+black --check .              # formatting
+mypy app tests               # static types
 ```
 
 The CI workflow mirrors the same steps with automated testing.
@@ -120,6 +138,14 @@ The CI workflow mirrors the same steps with automated testing.
 ## Migrations
 
 ```bash
+# Using helper script (recommended)
+./scripts/db.sh migrate          # run pending migrations
+./scripts/db.sh revision "msg"   # create new migration
+./scripts/db.sh rollback         # rollback one migration
+./scripts/db.sh reset            # reset database (WARNING: deletes all data)
+./scripts/db.sh shell            # open PostgreSQL shell
+
+# Or manually
 alembic revision --autogenerate -m "add product table"
 alembic upgrade head
 ```
@@ -141,12 +167,27 @@ The Docker image runs `alembic upgrade head` at start‑up so containers come up
 
 ```
 app/
- ├── api/                 # Routers / endpoints
+ ├── routers/             # API endpoints
  ├── core/                # Settings, security, utils
  ├── models/              # SQLModel tables & Pydantic schemas
- ├── services/            # CRUD / business logic
- ├── tests/               # Pytest suites
+ ├── auth/                # Authentication logic
+ ├── database.py          # Database connection
  └── main.py              # FastAPI factory & router mounting
+tests/
+ ├── e2e/                 # Playwright E2E tests
+ └── *.py                 # Unit tests
+scripts/
+ ├── setup.sh             # Development environment setup
+ ├── dev.sh               # Start development server
+ ├── test.sh              # Run tests
+ ├── lint.sh              # Run linters
+ └── db.sh                # Database management
+.github/workflows/
+ ├── ci.yml               # CI pipeline
+ └── cd.yml               # CD pipeline
+docs/
+ ├── API.md               # API documentation
+ └── DEPLOYMENT.md        # Deployment guide
 monitoring/
  ├── prometheus.yml
  └── grafana.json
