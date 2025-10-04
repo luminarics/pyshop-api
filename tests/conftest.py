@@ -15,6 +15,15 @@ from app.models.user import Base
 pytest_plugins = ("pytest_playwright",)
 
 
+def pytest_collection_modifyitems(config, items):
+    """Modify test items to handle E2E tests differently."""
+    for item in items:
+        # Skip asyncio treatment for E2E tests
+        if "e2e" in item.keywords:
+            # Remove asyncio marker if present
+            item.own_markers = [m for m in item.own_markers if m.name != "asyncio"]
+
+
 # Configure test database
 ASYNC_SQLITE_URL = "sqlite+aiosqlite:///:memory:"
 
