@@ -61,5 +61,9 @@ def override_get_session():
 
 @pytest_asyncio.fixture
 async def client():
-    async with AsyncClient(app=fastapi_app, base_url="http://test") as ac:
+    from httpx import ASGITransport
+
+    async with AsyncClient(
+        transport=ASGITransport(app=fastapi_app), base_url="http://test"
+    ) as ac:
         yield ac
