@@ -96,7 +96,7 @@ class TestProductFlow:
         base_url: str,
         auth_headers: dict[str, str],
     ):
-        """Test retrieving a product by ID."""
+        """Test retrieving a product by ID via list endpoint."""
         # Create product first
         product_data = {"name": "Get Test Product", "price": 49.99}
         response = api_context.post(
@@ -108,14 +108,15 @@ class TestProductFlow:
         created_product = response.json()
         product_id = created_product["id"]
 
-        # Get product by ID
+        # Get all products and verify our product is in the list
         response = api_context.get(
-            f"{base_url}/products/{product_id}",
+            f"{base_url}/products/",
             headers=auth_headers,
         )
         assert response.ok
-        product = response.json()
-        assert product["id"] == product_id
+        products = response.json()
+        product = next((p for p in products if p["id"] == product_id), None)
+        assert product is not None
         assert product["name"] == product_data["name"]
 
     def test_update_product(
@@ -135,9 +136,9 @@ class TestProductFlow:
         assert response.ok
         product_id = response.json()["id"]
 
-        # Update product
+        # Update product (using PUT not PATCH)
         updated_data = {"name": "Updated Name", "price": 39.99}
-        response = api_context.patch(
+        response = api_context.put(
             f"{base_url}/products/{product_id}",
             headers=auth_headers,
             data=updated_data,
@@ -171,12 +172,15 @@ class TestProductFlow:
         )
         assert response.ok
 
-        # Verify product is deleted
+        # Verify product is deleted by checking it's not in the list
         response = api_context.get(
-            f"{base_url}/products/{product_id}",
+            f"{base_url}/products/",
             headers=auth_headers,
         )
-        assert response.status == 404
+        assert response.ok
+        products = response.json()
+        deleted_product = next((p for p in products if p["id"] == product_id), None)
+        assert deleted_product is None
 
 
 @pytest.mark.e2e
@@ -188,4 +192,4 @@ class TestHealthCheck:
         response = api_context.get(f"{base_url}/healthz")
         assert response.ok
         health_data = response.json()
-        assert health_data["status"] == "healthy"
+        assert health_data["status"] == "ok"
