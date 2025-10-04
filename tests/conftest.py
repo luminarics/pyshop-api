@@ -31,7 +31,7 @@ AsyncTestingSessionLocal = async_sessionmaker(
 )
 
 
-@pytest_asyncio.fixture(autouse=True)
+@pytest_asyncio.fixture(scope="function")
 async def setup_db():
     # Create all tables using Base.metadata
     async with engine.begin() as conn:
@@ -43,27 +43,24 @@ async def setup_db():
 
 
 @pytest_asyncio.fixture
-async def async_session():
+async def async_session(setup_db):
     async with AsyncTestingSessionLocal() as session:
         yield session
 
 
-@pytest.fixture(autouse=True)
-def override_get_session():
+@pytest_asyncio.fixture
+async def client(setup_db):
+    from httpx import ASGITransport
+
     async def _get_test_session():
         async with AsyncTestingSessionLocal() as session:
             yield session
 
     fastapi_app.dependency_overrides[get_session] = _get_test_session
-    yield
-    fastapi_app.dependency_overrides.clear()
-
-
-@pytest_asyncio.fixture
-async def client():
-    from httpx import ASGITransport
 
     async with AsyncClient(
         transport=ASGITransport(app=fastapi_app), base_url="http://test"
     ) as ac:
         yield ac
+
+    fastapi_app.dependency_overrides.clear()
